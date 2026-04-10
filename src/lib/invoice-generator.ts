@@ -3,8 +3,8 @@ import { GenerationParams, Invoice, InvoiceItem, InvoiceTax } from '../types';
 import { numberToWordsIndian } from './number-to-words';
 
 const BENGALI_FIRST_NAMES_MALE = ['Amit', 'Bikash', 'Chandan', 'Debashis', 'Gopal', 'Joy', 'Kalyan', 'Manas', 'Palash', 'Rajat', 'Sanjay', 'Tapas', 'Utpal', 'Biplab', 'Prasenjit', 'Subrata', 'Arup', 'Soumik', 'Koushik', 'Suman'];
-const BENGALI_FIRST_NAMES_FEMALE = ['Anjali', 'Bipasha', 'Chaitali', 'Debjani', 'Gargi', 'Joya', 'Kakoli', 'Mita', 'Piyali', 'Rupa', 'Sarmistha', 'Tumpa', 'Urmila', 'Baisakhi', 'Priyanka', 'Sushmita', 'Aparna', 'Soma', 'Koyel', 'Supriya'];
-const BENGALI_LAST_NAMES = ['Das', 'Ghosh', 'Bose', 'Mitra', 'Datta', 'Sen', 'Roy', 'Chakraborty', 'Banerjee', 'Chatterjee', 'Mukherjee', 'Saha', 'Nandi', 'Majumdar', 'Sarkar', 'Bhattacharya', 'Guha', 'Basu', 'Haldar', 'Mallick'];
+const BENGALI_FIRST_NAMES_FEMALE = ['Anjali', 'Priya', 'Chaitali', 'Debjani', 'Gargi', 'Joya', 'Kakoli', 'Mita', 'Piyali', 'Rupa', 'Sarmistha', 'Tumpa', 'Urmila', 'Baisakhi', 'Priyanka', 'Sushmita', 'Aparna', 'Soma', 'Koyel', 'Supriya'];
+const BENGALI_LAST_NAMES = ['Das', 'Ghosh', 'Malakar', 'Mitra', 'Datta', 'Sen', 'Roy', 'Chakraborty', 'Debnath', 'Pal', 'Deb', 'Saha', 'Chakraborty', 'Majumdar', 'Sarkar', 'Bhattacharya', 'Guha', 'Basu', 'Haldar', 'Mallick'];
 
 const REGULAR_CUSTOMERS = [
   'Prabash Saha',
@@ -21,7 +21,7 @@ const REGULAR_CUSTOMERS = [
 ];
 
 const UNAKOTI_LOCALITIES = [
-  'Kailashahar', 'Kumarghat', 'Fatikroy', 'Pecharthal', 'Gournagar', 
+  'Kailashahar', 'Kumarghat', 'Fatikroy', 'Pecharthal', 'Gournagar',
   'Srirampur', 'Durgapur', 'Bhagabanagar', 'Kanchanpur Road', 'Bhatiabari',
   'Samrupar', 'Dhanbilash', 'Gokulnagar', 'Rajkandi', 'Sonaimuri'
 ];
@@ -42,14 +42,14 @@ function generateCustomerName(): string {
 
 function generateCustomerAddress(customerName: string): string {
   let locality = getRandomItem(UNAKOTI_LOCALITIES);
-  
+
   // Make sure regular customers are mostly from Kumarghat
   if (REGULAR_CUSTOMERS.includes(customerName)) {
     if (Math.random() < 0.8) {
       locality = 'Kumarghat';
     }
   }
-  
+
   const isVillage = Math.random() > 0.5;
   const prefix = isVillage ? 'Vill.' : 'Locality';
   return `${prefix} ${locality}, Unakoti, Tripura`;
@@ -57,22 +57,22 @@ function generateCustomerAddress(customerName: string): string {
 
 export function generateInvoices(params: GenerationParams): Invoice[] {
   const { startDate, endDate, targetJars, startInvoiceNo } = params;
-  
+
   const daysDiff = differenceInDays(endDate, startDate) + 1;
-  
+
   // Number of invoices depends on total days. If 9 days, 9 or 8 or 7 invoices.
   const dropCount = Math.floor(Math.random() * 3); // 0, 1, or 2
   let invoiceCount = daysDiff - dropCount;
-  
+
   // Enforce mathematically required minimum invoices if we cap at 20 max jars per invoice
   const minRequiredInvoices = Math.ceil(targetJars / 20);
   if (invoiceCount < minRequiredInvoices) {
     invoiceCount = minRequiredInvoices;
   }
-  
+
   if (invoiceCount < 1) invoiceCount = 1;
   if (invoiceCount > targetJars) invoiceCount = Math.max(1, targetJars);
-  
+
   // Generate dates
   const dates = [];
   for (let i = 0; i < invoiceCount; i++) {
@@ -106,9 +106,9 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
         if (needed < 5) eligibleIndices.push({ idx: i, add: needed });
       }
     }
-    
+
     if (eligibleIndices.length === 0) break;
-    
+
     const choice = eligibleIndices[Math.floor(Math.random() * eligibleIndices.length)];
     quantities[choice.idx] += choice.add;
     remaining -= choice.add;
@@ -122,27 +122,27 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
         availableIndices.push(i);
       }
     }
-    
+
     if (availableIndices.length === 0) break;
-    
+
     const idx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     quantities[idx] += 1;
     remaining -= 1;
   }
-  
+
   const invoices: Invoice[] = [];
-  
+
   for (let i = 0; i < invoiceCount; i++) {
     const qty = quantities[i];
     const rate = 16.95;
     const baseAmount = Number((qty * rate).toFixed(2));
-    
+
     const cgstAmount = Number((baseAmount * 0.09).toFixed(2));
     const sgstAmount = Number((baseAmount * 0.09).toFixed(2));
     const totalGstAmount = Number((cgstAmount + sgstAmount).toFixed(2));
-    
+
     const grandTotal = Number((baseAmount + totalGstAmount).toFixed(2));
-    
+
     const item: InvoiceItem = {
       description: "20 Litre Packaged Drinking Water Jar",
       hsn: "2201",
@@ -150,7 +150,7 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
       rate: rate,
       amount: baseAmount
     };
-    
+
     const tax: InvoiceTax = {
       cgstRate: 9,
       sgstRate: 9,
@@ -158,9 +158,9 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
       sgstAmount,
       totalGstAmount
     };
-    
+
     const customerName = generateCustomerName();
-    
+
     invoices.push({
       id: (startInvoiceNo + i).toString().padStart(3, '0'),
       date: dates[i],
@@ -173,6 +173,6 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
       amountInWords: numberToWordsIndian(grandTotal)
     });
   }
-  
+
   return invoices;
 }
