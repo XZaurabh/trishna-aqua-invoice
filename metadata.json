@@ -1,0 +1,5 @@
+{
+  "name": "Clear Ledger",
+  "description": "A data simulation and automation tool for generating realistic retail invoices for packaged drinking water sales.",
+  "requestFramePermissions": []
+}
