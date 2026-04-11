@@ -8,22 +8,28 @@ const BENGALI_LAST_NAMES = ['Das', 'Ghosh', 'Malakar', 'Mitra', 'Datta', 'Sen', 
 
 const REGULAR_CUSTOMERS = [
   'Prabash Saha',
-  'Mayan Restaurant',
+  'Nightingale Medicine',
+  'Maninda Malakar',
   "Naru's Restaurant",
-  'Shanti Restaurant',
-  'Nightingle Medicine',
+  'Munni Restaurant',
+  'Mayan Restaurant',
+  'Gandhi Mistanna Bhandar',
+  'Sudharm Banik',
+  'Dulal Banik',
+  'Ujjal Malakar',
+  'Manindra Malakar',
+  'Siddhartha Chaudhury',
   'Cake & Buns',
   'Bento Cakery',
-  'Chanchal Banik',
-  'Sudham Banik',
-  'Kesab Debbarma',
-  'Electric Office'
+  'Ranjit S.Kar',
+  'Chanchal Banik'
 ];
 
 const UNAKOTI_LOCALITIES = [
   'Kailashahar', 'Kumarghat', 'Fatikroy', 'Pecharthal', 'Gournagar',
   'Srirampur', 'Durgapur', 'Bhagabanagar', 'Kanchanpur Road', 'Bhatiabari',
-  'Samrupar', 'Dhanbilash', 'Gokulnagar', 'Rajkandi', 'Sonaimuri'
+  'Samrupar', 'Dhanbilash', 'Gokulnagar', 'Rajkandi', 'Sonaimuri',
+  'Saidabari', 'Asrampalli', 'Nidevi'
 ];
 
 function getRandomItem<T>(arr: T[]): T {
