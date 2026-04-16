@@ -2,14 +2,12 @@ import { addDays, differenceInDays } from 'date-fns';
 import { GenerationParams, Invoice, InvoiceItem, InvoiceTax } from '../types';
 import { numberToWordsIndian } from './number-to-words';
 
-const BENGALI_FIRST_NAMES_MALE = ['Amit', 'Bikash', 'Chandan', 'Debashis', 'Gopal', 'Joy', 'Kalyan', 'Manas', 'Palash', 'Rajat', 'Sanjay', 'Tapas', 'Utpal', 'Biplab', 'Prasenjit', 'Subrata', 'Arup', 'Soumik', 'Koushik', 'Suman'];
-const BENGALI_FIRST_NAMES_FEMALE = ['Anjali', 'Priya', 'Chaitali', 'Debjani', 'Gargi', 'Joya', 'Kakoli', 'Mita', 'Piyali', 'Rupa', 'Sarmistha', 'Tumpa', 'Urmila', 'Baisakhi', 'Priyanka', 'Sushmita', 'Aparna', 'Soma', 'Koyel', 'Supriya'];
-const BENGALI_LAST_NAMES = ['Das', 'Ghosh', 'Malakar', 'Mitra', 'Datta', 'Sen', 'Roy', 'Chakraborty', 'Debnath', 'Pal', 'Deb', 'Saha', 'Chakraborty', 'Majumdar', 'Sarkar', 'Bhattacharya', 'Guha', 'Basu', 'Haldar', 'Mallick'];
+
 
 const REGULAR_CUSTOMERS = [
   'Prabash Saha',
   'Nightingale Medicine',
-  'Maninda Malakar',
+  'Manindra Das',
   "Naru's Restaurant",
   'Munni Restaurant',
   'Mayan Restaurant',
@@ -17,7 +15,7 @@ const REGULAR_CUSTOMERS = [
   'Sudharm Banik',
   'Dulal Banik',
   'Ujjal Malakar',
-  'Manindra Malakar',
+  'Manindra Das',
   'Siddhartha Chaudhury',
   'Cake & Buns',
   'Bento Cakery',
@@ -37,20 +35,18 @@ function getRandomItem<T>(arr: T[]): T {
 }
 
 function generateCustomerName(): string {
-  if (Math.random() < 0.7) {
-    return getRandomItem(REGULAR_CUSTOMERS);
-  }
-  const isMale = Math.random() > 0.5;
-  const firstName = isMale ? getRandomItem(BENGALI_FIRST_NAMES_MALE) : getRandomItem(BENGALI_FIRST_NAMES_FEMALE);
-  const lastName = getRandomItem(BENGALI_LAST_NAMES);
-  return `${firstName} ${lastName}`;
+  return getRandomItem(REGULAR_CUSTOMERS);
 }
 
 function generateCustomerAddress(customerName: string): string {
   let locality = getRandomItem(UNAKOTI_LOCALITIES);
 
-  // Make sure regular customers are mostly from Kumarghat
-  if (REGULAR_CUSTOMERS.includes(customerName)) {
+  if (customerName === 'Manindra Das') {
+    locality = 'Asrampalli';
+  } else if (customerName === 'Ranjit S.Kar' || customerName === 'Chanchal Banik') {
+    locality = 'Kanchanbari';
+  } else if (REGULAR_CUSTOMERS.includes(customerName)) {
+    // Make sure regular customers are mostly from Kumarghat
     if (Math.random() < 0.8) {
       locality = 'Kumarghat';
     }
