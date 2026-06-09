@@ -20,7 +20,9 @@ const REGULAR_CUSTOMERS = [
   'Cake & Buns',
   'Bento Cakery',
   'Ranjit S.Kar',
-  'Chanchal Banik'
+  'Chanchal Banik',
+  'Binay Dhar',
+  'Ranjit Shabdakar'
 ];
 
 const UNAKOTI_LOCALITIES = [
@@ -43,8 +45,10 @@ function generateCustomerAddress(customerName: string): string {
 
   if (customerName === 'Manindra Das') {
     locality = 'Asrampalli';
-  } else if (customerName === 'Ranjit S.Kar' || customerName === 'Chanchal Banik') {
+  } else if (customerName === 'Ranjit S.Kar' || customerName === 'Chanchal Banik' || customerName === 'Ranjit Shabdakar') {
     locality = 'Kanchanbari';
+  } else if (customerName === 'Binay Dhar') {
+    locality = 'Kanchanpur';
   } else if (REGULAR_CUSTOMERS.includes(customerName)) {
     // Make sure regular customers are mostly from Kumarghat
     if (Math.random() < 0.8) {
@@ -54,11 +58,18 @@ function generateCustomerAddress(customerName: string): string {
 
   const isVillage = Math.random() > 0.5;
   const prefix = isVillage ? 'Vill.' : 'Locality';
-  return `${prefix} ${locality}, Unakoti, Tripura`;
+  const district = locality === 'Kanchanpur' ? 'North Tripura' : 'Unakoti';
+  return `${prefix} ${locality}, ${district}, Tripura`;
 }
 
 export function generateInvoices(params: GenerationParams): Invoice[] {
   const { startDate, endDate, targetJars, startInvoiceNo } = params;
+
+  // Round targetJars to nearest multiple of 10, minimum of 10.
+  let adjustedTargetJars = Math.round(targetJars / 10) * 10;
+  if (adjustedTargetJars < 10) {
+    adjustedTargetJars = 10;
+  }
 
   const daysDiff = differenceInDays(endDate, startDate) + 1;
 
@@ -66,14 +77,19 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
   const dropCount = Math.floor(Math.random() * 3); // 0, 1, or 2
   let invoiceCount = daysDiff - dropCount;
 
-  // Enforce mathematically required minimum invoices if we cap at 20 max jars per invoice
-  const minRequiredInvoices = Math.ceil(targetJars / 20);
+  // Enforce bounds based on jar distribution rules (min 10, max 50 jars per invoice)
+  const minRequiredInvoices = Math.ceil(adjustedTargetJars / 50);
+  const maxRequiredInvoices = Math.floor(adjustedTargetJars / 10);
+
   if (invoiceCount < minRequiredInvoices) {
     invoiceCount = minRequiredInvoices;
   }
-
-  if (invoiceCount < 1) invoiceCount = 1;
-  if (invoiceCount > targetJars) invoiceCount = Math.max(1, targetJars);
+  if (invoiceCount > maxRequiredInvoices) {
+    invoiceCount = maxRequiredInvoices;
+  }
+  if (invoiceCount < 1) {
+    invoiceCount = 1;
+  }
 
   // Generate dates
   const dates = [];
@@ -86,50 +102,27 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
   }
   dates.sort((a, b) => a.getTime() - b.getTime());
 
-  // Phase 1: Guarantee every invoice has at least 1 jar to be valid.
-  const quantities = Array(invoiceCount).fill(0);
-  let remaining = targetJars;
+  // Distribute adjustedTargetJars into invoiceCount invoices
+  // Start each with 10 jars
+  const quantities = Array(invoiceCount).fill(10);
+  let remaining = adjustedTargetJars - (invoiceCount * 10);
 
-  for (let i = 0; i < invoiceCount; i++) {
-    quantities[i] += 1;
-    remaining -= 1;
-  }
-
-  // Phase 2: Boost quantities towards multiples of 5 (5, 10, 15, 20).
-  while (remaining >= 4) {
-    const eligibleIndices = [];
-    for (let i = 0; i < invoiceCount; i++) {
-      if (quantities[i] === 1 && remaining >= 4) eligibleIndices.push({ idx: i, add: 4 });
-      else if (quantities[i] > 1 && quantities[i] <= 15 && quantities[i] % 5 === 0 && remaining >= 5) {
-        eligibleIndices.push({ idx: i, add: 5 });
-      } else if (quantities[i] > 1 && quantities[i] < 20 && remaining >= (5 - (quantities[i] % 5))) {
-        // Just in case it's not a multiple of 5, push it towards one
-        const needed = 5 - (quantities[i] % 5);
-        if (needed < 5) eligibleIndices.push({ idx: i, add: needed });
-      }
-    }
-
-    if (eligibleIndices.length === 0) break;
-
-    const choice = eligibleIndices[Math.floor(Math.random() * eligibleIndices.length)];
-    quantities[choice.idx] += choice.add;
-    remaining -= choice.add;
-  }
-
-  // Phase 3: Catch any leftover remainders randomly
+  // Boost in increments of 10 up to 50 jars per invoice
   while (remaining > 0) {
-    const availableIndices = [];
+    const eligibleIndices = [];
     for (let i = 0; i < quantities.length; i++) {
-      if (quantities[i] < 20) {
-        availableIndices.push(i);
+      if (quantities[i] < 50) {
+        eligibleIndices.push(i);
       }
     }
 
-    if (availableIndices.length === 0) break;
+    if (eligibleIndices.length === 0) {
+      break;
+    }
 
-    const idx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-    quantities[idx] += 1;
-    remaining -= 1;
+    const idx = eligibleIndices[Math.floor(Math.random() * eligibleIndices.length)];
+    quantities[idx] += 10;
+    remaining -= 10;
   }
 
   const invoices: Invoice[] = [];

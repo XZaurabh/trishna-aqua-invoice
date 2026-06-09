@@ -17,8 +17,8 @@ export function InvoiceForm({ onGenerate, isGenerating }: InvoiceFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Randomly choose a number between 90 and 100 on mount
-    setTargetJars(Math.floor(Math.random() * 11) + 90);
+    // Randomly choose a multiple of 10 between 80 and 120 on mount
+    setTargetJars((Math.floor(Math.random() * 5) + 8) * 10);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,15 +33,21 @@ export function InvoiceForm({ onGenerate, isGenerating }: InvoiceFormProps) {
       return;
     }
 
+    const jars = Number(targetJars) || 0;
+    if (jars % 10 !== 0) {
+      setError("Target Total Jars must be a multiple of 10.");
+      return;
+    }
+
     onGenerate({
       startDate: start,
       endDate: end,
-      targetJars: Number(targetJars) || 0,
+      targetJars: jars,
       startInvoiceNo: Number(startInvoiceNo) || 1
     });
 
     // Automatically change target total jars for the next generation
-    setTargetJars(Math.floor(Math.random() * 11) + 90);
+    setTargetJars((Math.floor(Math.random() * 5) + 8) * 10);
   };
 
   return (
@@ -82,12 +88,13 @@ export function InvoiceForm({ onGenerate, isGenerating }: InvoiceFormProps) {
           <input 
             type="number" 
             required
-            min="5"
+            min="10"
+            step="10"
             value={targetJars}
             onChange={e => setTargetJars(e.target.value === '' ? '' : parseInt(e.target.value, 10))}
             className="w-full px-3 py-2 bg-white dark:bg-black border border-slate-300 dark:border-neutral-800 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-slate-900 dark:focus:ring-slate-100 dark:focus:border-slate-100 outline-none transition-all dark:text-slate-200"
           />
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Invoice count is auto-calculated.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Invoice count is auto-calculated. Jars are distributed in multiples of 10.</p>
         </div>
 
         <div className="space-y-1.5">
