@@ -160,7 +160,7 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, seller, isExp
                       <td className="border-l border-r border-black"></td>
                       <td className="border-l border-r border-black"></td>
                       <td className="border-l border-r border-black"></td>
-                      <td className="border border-black border-b-0 p-0.5 sm:p-1.5 px-1 sm:px-2 text-right text-blue-600 text-[8px] sm:text-sm font-semibold tracking-wide whitespace-nowrap">CGST 9%</td>
+                      <td className="border border-black border-b-0 p-0.5 sm:p-1.5 px-1 sm:px-2 text-right text-blue-600 text-[8px] sm:text-sm font-semibold tracking-wide whitespace-nowrap">CGST {invoice.tax.cgstRate}%</td>
                       <td className="border border-black border-b-0 p-0.5 sm:p-1.5 px-1 sm:px-2 text-right text-blue-600 text-[10px] sm:text-sm font-semibold tracking-wide">{invoice.tax.cgstAmount.toFixed(2)}</td>
                     </tr>
                     <tr>
@@ -168,7 +168,7 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, seller, isExp
                       <td className="border-l border-r border-b border-black"></td>
                       <td className="border-l border-r border-b border-black"></td>
                       <td className="border-l border-r border-b border-black"></td>
-                      <td className="border border-black p-0.5 sm:p-1.5 px-1 sm:px-2 text-right text-blue-600 text-[8px] sm:text-sm font-semibold tracking-wide whitespace-nowrap">SGST 9%</td>
+                      <td className="border border-black p-0.5 sm:p-1.5 px-1 sm:px-2 text-right text-blue-600 text-[8px] sm:text-sm font-semibold tracking-wide whitespace-nowrap">SGST {invoice.tax.sgstRate}%</td>
                       <td className="border border-black p-0.5 sm:p-1.5 px-1 sm:px-2 text-right text-blue-600 text-[10px] sm:text-sm font-semibold tracking-wide">{invoice.tax.sgstAmount.toFixed(2)}</td>
                     </tr>
                     <tr>
@@ -186,7 +186,7 @@ export const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, seller, isExp
 
                 <div className="text-right mt-8 sm:mt-12 pr-2 sm:pr-4">
                   <div className="inline-block text-center w-20 sm:w-40">
-                    <div className="text-blue-600 text-xs sm:text-lg mb-0.5 sm:mb-1 font-semibold tracking-wide">Sourav</div>
+                    <div className="text-blue-600 text-xs sm:text-lg mb-0.5 sm:mb-1 font-semibold tracking-wide">{seller.signature || 'Sourav'}</div>
                     <div className="border-t border-black pt-1 sm:pt-1.5 font-bold text-[8px] sm:text-sm">Signature</div>
                   </div>
                 </div>

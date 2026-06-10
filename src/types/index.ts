@@ -32,7 +32,24 @@ export interface SellerDetails {
   address: string;
   gstin: string;
   phone: string;
+  signature?: string;
 }
+
+export interface GeneratorConfig {
+  seller: SellerDetails;
+  product: {
+    description: string;
+    hsn: string;
+    rate: number;
+  };
+  tax: {
+    cgstRate: number;
+    sgstRate: number;
+  };
+  customers: string[];
+  localities: string[];
+}
+
 
 export interface GenerationParams {
   startDate: Date;

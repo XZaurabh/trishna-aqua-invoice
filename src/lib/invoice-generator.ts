@@ -1,5 +1,5 @@
 import { addDays, differenceInDays } from 'date-fns';
-import { GenerationParams, Invoice, InvoiceItem, InvoiceTax } from '../types';
+import { GenerationParams, Invoice, InvoiceItem, InvoiceTax, GeneratorConfig } from '../types';
 import { numberToWordsIndian } from './number-to-words';
 
 
@@ -13,7 +13,7 @@ const REGULAR_CUSTOMERS = [
   'Mayan Restaurant',
   'Gandhi Mistanna Bhandar',
   'Sudharm Banik',
-  'Dulal Banik',
+  'Dulal Sarkar',
   'Ujjal Malakar',
   'Manindra Das',
   'Siddhartha Chaudhury',
@@ -36,12 +36,15 @@ function getRandomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateCustomerName(): string {
-  return getRandomItem(REGULAR_CUSTOMERS);
+function generateCustomerName(customersList: string[]): string {
+  const list = customersList.length > 0 ? customersList : REGULAR_CUSTOMERS;
+  return getRandomItem(list);
 }
 
-function generateCustomerAddress(customerName: string): string {
-  let locality = getRandomItem(UNAKOTI_LOCALITIES);
+function generateCustomerAddress(customerName: string, localitiesList: string[], customersList: string[]): string {
+  const list = localitiesList.length > 0 ? localitiesList : UNAKOTI_LOCALITIES;
+  const regularList = customersList.length > 0 ? customersList : REGULAR_CUSTOMERS;
+  let locality = getRandomItem(list);
 
   if (customerName === 'Manindra Das') {
     locality = 'Asrampalli';
@@ -49,9 +52,9 @@ function generateCustomerAddress(customerName: string): string {
     locality = 'Kanchanbari';
   } else if (customerName === 'Binay Dhar') {
     locality = 'Kanchanpur';
-  } else if (REGULAR_CUSTOMERS.includes(customerName)) {
-    // Make sure regular customers are mostly from Kumarghat
-    if (Math.random() < 0.8) {
+  } else if (regularList.includes(customerName)) {
+    // Make sure regular customers are mostly from Kumarghat if Kumarghat is in the list
+    if (list.includes('Kumarghat') && Math.random() < 0.8) {
       locality = 'Kumarghat';
     }
   }
@@ -62,7 +65,7 @@ function generateCustomerAddress(customerName: string): string {
   return `${prefix} ${locality}, ${district}, Tripura`;
 }
 
-export function generateInvoices(params: GenerationParams): Invoice[] {
+export function generateInvoices(params: GenerationParams, config: GeneratorConfig): Invoice[] {
   const { startDate, endDate, targetJars, startInvoiceNo } = params;
 
   // Round targetJars to nearest multiple of 10, minimum of 10.
@@ -129,38 +132,38 @@ export function generateInvoices(params: GenerationParams): Invoice[] {
 
   for (let i = 0; i < invoiceCount; i++) {
     const qty = quantities[i];
-    const rate = 16.95;
+    const rate = config.product.rate;
     const baseAmount = Number((qty * rate).toFixed(2));
 
-    const cgstAmount = Number((baseAmount * 0.09).toFixed(2));
-    const sgstAmount = Number((baseAmount * 0.09).toFixed(2));
+    const cgstAmount = Number((baseAmount * (config.tax.cgstRate / 100)).toFixed(2));
+    const sgstAmount = Number((baseAmount * (config.tax.sgstRate / 100)).toFixed(2));
     const totalGstAmount = Number((cgstAmount + sgstAmount).toFixed(2));
 
     const grandTotal = Number((baseAmount + totalGstAmount).toFixed(2));
 
     const item: InvoiceItem = {
-      description: "20 Litre Packaged Drinking Water Jar",
-      hsn: "2201",
+      description: config.product.description,
+      hsn: config.product.hsn,
       quantity: qty,
       rate: rate,
       amount: baseAmount
     };
 
     const tax: InvoiceTax = {
-      cgstRate: 9,
-      sgstRate: 9,
+      cgstRate: config.tax.cgstRate,
+      sgstRate: config.tax.sgstRate,
       cgstAmount,
       sgstAmount,
       totalGstAmount
     };
 
-    const customerName = generateCustomerName();
+    const customerName = generateCustomerName(config.customers);
 
     invoices.push({
       id: (startInvoiceNo + i).toString().padStart(3, '0'),
       date: dates[i],
       customerName: customerName,
-      customerAddress: generateCustomerAddress(customerName),
+      customerAddress: generateCustomerAddress(customerName, config.localities, config.customers),
       items: [item],
       baseAmount,
       tax,

@@ -4,21 +4,18 @@ import { InvoiceForm } from './components/InvoiceForm';
 import { InvoiceSummary } from './components/InvoiceSummary';
 import { InvoiceList } from './components/InvoiceList';
 import { generateInvoices } from './lib/invoice-generator';
-import { GenerationParams, Invoice, SellerDetails } from './types';
-import { Download, Printer } from 'lucide-react';
-
-const DEFAULT_SELLER: SellerDetails = {
-  name: "SREE KRISHNA FOOD AND BEVERAGES",
-  brand: "TRISHNA AQUA",
-  address: "Saidabari, Kumarghat, Unakoti Tripura",
-  gstin: "16EFMPS6521H1Z2",
-  phone: ""
-};
+import { GenerationParams, Invoice, SellerDetails, GeneratorConfig } from './types';
+import { Download, Printer, Settings } from 'lucide-react';
+import { SettingsModal } from './components/SettingsModal';
+import { getStoredConfig, saveConfig } from './lib/settings';
 
 export default function App() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [seller] = useState<SellerDetails>(DEFAULT_SELLER);
+  const [config, setConfig] = useState<GeneratorConfig>(() => getStoredConfig());
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const seller = config.seller;
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
@@ -29,7 +26,7 @@ export default function App() {
     // Small timeout to allow UI to update to "Generating..." state
     setTimeout(() => {
       try {
-        const newInvoices = generateInvoices(params);
+        const newInvoices = generateInvoices(params, config);
         setInvoices(newInvoices);
       } catch (error) {
         console.error(error);
@@ -151,7 +148,7 @@ export default function App() {
                     <td style="border-left: 1px solid black; border-right: 1px solid black;"></td>
                     <td style="border-left: 1px solid black; border-right: 1px solid black;"></td>
                     <td style="border-left: 1px solid black; border-right: 1px solid black;"></td>
-                    <td style="border: 1px solid black; border-bottom: none; padding: 5px 10px; text-align: right; white-space: nowrap;" class="handwritten">CGST 9%</td>
+                    <td style="border: 1px solid black; border-bottom: none; padding: 5px 10px; text-align: right; white-space: nowrap;" class="handwritten">CGST ${invoice.tax.cgstRate}%</td>
                     <td style="border: 1px solid black; border-bottom: none; padding: 5px 10px; text-align: right;" class="handwritten">${invoice.tax.cgstAmount.toFixed(2)}</td>
                   </tr>
                   <tr>
@@ -159,7 +156,7 @@ export default function App() {
                     <td style="border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black;"></td>
                     <td style="border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black;"></td>
                     <td style="border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black;"></td>
-                    <td style="border: 1px solid black; padding: 5px 10px; text-align: right; white-space: nowrap;" class="handwritten">SGST 9%</td>
+                    <td style="border: 1px solid black; padding: 5px 10px; text-align: right; white-space: nowrap;" class="handwritten">SGST ${invoice.tax.sgstRate}%</td>
                     <td style="border: 1px solid black; padding: 5px 10px; text-align: right;" class="handwritten">${invoice.tax.sgstAmount.toFixed(2)}</td>
                   </tr>
                   <tr>
@@ -179,7 +176,7 @@ export default function App() {
 
               <div style="text-align: right; margin-top: 60px; padding-right: 20px;">
                 <div style="display: inline-block; text-align: center; width: 200px;">
-                  <div class="handwritten" style="font-size: 32px; margin-bottom: 5px;">Sourav</div>
+                  <div class="handwritten" style="font-size: 32px; margin-bottom: 5px;">${seller.signature || 'Sourav'}</div>
                   <div style="border-top: 1px solid black; padding-top: 8px; font-weight: 800; font-size: 16px;">Signature</div>
                 </div>
               </div>
@@ -216,6 +213,15 @@ export default function App() {
           </div>
           
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-350 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 transition-colors px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 shadow-xs"
+              title="Open Control Panel Database Settings"
+            >
+              <Settings size={16} />
+              <span>Control Panel</span>
+            </button>
+
             {invoices.length > 0 && (
               <>
                 <button 
@@ -253,6 +259,16 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      <SettingsModal 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        config={config}
+        onSaveConfig={(newConfig) => {
+          saveConfig(newConfig);
+          setConfig(newConfig);
+        }}
+      />
     </div>
   );
 }
