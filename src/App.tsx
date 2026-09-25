@@ -3,13 +3,17 @@ import { format } from 'date-fns';
 import { InvoiceForm } from './components/InvoiceForm';
 import { InvoiceSummary } from './components/InvoiceSummary';
 import { InvoiceList } from './components/InvoiceList';
+import { ShortcutPage } from './components/ShortcutPage';
 import { generateInvoices } from './lib/invoice-generator';
-import { GenerationParams, Invoice, SellerDetails, GeneratorConfig } from './types';
-import { Download, Printer, Settings } from 'lucide-react';
+import { GenerationParams, Invoice, GeneratorConfig } from './types';
+import { Download, Printer, Settings, ReceiptText, TableProperties } from 'lucide-react';
 import { SettingsModal } from './components/SettingsModal';
 import { getStoredConfig, saveConfig } from './lib/settings';
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<'invoices' | 'shortcut'>(() => {
+    return window.location.hash === '#shortcut' ? 'shortcut' : 'invoices';
+  });
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [config, setConfig] = useState<GeneratorConfig>(() => getStoredConfig());
@@ -19,11 +23,24 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
+    const handleHashChange = () => {
+      if (window.location.hash === '#shortcut') {
+        setActiveTab('shortcut');
+      } else {
+        setActiveTab('invoices');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  const switchTab = (tab: 'invoices' | 'shortcut') => {
+    setActiveTab(tab);
+    window.location.hash = tab === 'shortcut' ? '#shortcut' : '#invoices';
+  };
 
   const handleGenerate = (params: GenerationParams) => {
     setIsGenerating(true);
-    // Small timeout to allow UI to update to "Generating..." state
     setTimeout(() => {
       try {
         const newInvoices = generateInvoices(params, config);
@@ -183,7 +200,6 @@ export default function App() {
             </div>
           `).join('')}
           <script>
-            // Wait for fonts to load before printing
             document.fonts.ready.then(() => {
               window.print();
               window.close();
@@ -201,63 +217,123 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-slate-50 font-sans selection:bg-slate-200 dark:selection:bg-neutral-800">
       {/* Header */}
       <header className="bg-white dark:bg-black border-b border-slate-200 dark:border-neutral-900 sticky top-0 z-10 transition-colors">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-black tracking-tight uppercase leading-none mt-1">
-              <span className="text-slate-900 dark:text-white">TRISHNA</span>
-              <span className="text-blue-500 ml-1.5">INVOICE</span>
-            </h1>
-            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
-              SREE KRISHNA FOOD AND BEVERAGES
-            </span>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+          
+          {/* App Branding */}
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight uppercase leading-none mt-1">
+                <span className="text-slate-900 dark:text-white">TRISHNA</span>
+                <span className="text-blue-500 ml-1.5">INVOICE</span>
+              </h1>
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
+                SREE KRISHNA FOOD AND BEVERAGES
+              </span>
+            </div>
+
+            {/* Navigation Switcher Tabs */}
+            <nav className="hidden md:flex items-center bg-slate-100 dark:bg-neutral-900 p-1 rounded-xl border border-slate-200 dark:border-neutral-800 text-xs font-bold">
+              <button
+                onClick={() => switchTab('invoices')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  activeTab === 'invoices'
+                    ? 'bg-white dark:bg-black text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                <ReceiptText size={14} />
+                <span>Retail Invoices</span>
+              </button>
+
+              <button
+                onClick={() => switchTab('shortcut')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                  activeTab === 'shortcut'
+                    ? 'bg-white dark:bg-black text-blue-600 dark:text-blue-400 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                <TableProperties size={14} />
+                <span>Shortcut (Monthly Sales)</span>
+              </button>
+            </nav>
           </div>
           
-          <div className="flex items-center gap-3">
+          {/* Header Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button 
               onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-350 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 transition-colors px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 shadow-xs"
+              className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-900 dark:hover:bg-neutral-800 transition-colors px-3 py-1.5 rounded-lg border border-slate-200 dark:border-neutral-800 shadow-xs"
               title="Open Control Panel Database Settings"
             >
-              <Settings size={16} />
-              <span>Control Panel</span>
+              <Settings size={15} />
+              <span className="hidden sm:inline">Control Panel</span>
             </button>
 
-            {invoices.length > 0 && (
+            {activeTab === 'invoices' && invoices.length > 0 && (
               <>
                 <button 
                   onClick={handlePrintAll}
-                  className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors px-3 py-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800"
+                  className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors px-3 py-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800"
                 >
-                  <Printer size={16} />
+                  <Printer size={15} />
                   <span className="hidden sm:inline">Print All (PDF)</span>
                 </button>
                 <button 
                   onClick={handleExportCSV}
-                  className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors px-3 py-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-neutral-800"
+                  className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition-colors px-3 py-1.5 rounded-md hover:bg-slate-200 dark:hover:bg-neutral-800"
                 >
-                  <Download size={16} />
+                  <Download size={15} />
                   <span className="hidden sm:inline">Export CSV</span>
                 </button>
               </>
             )}
           </div>
         </div>
+
+        {/* Mobile Navigation Bar */}
+        <div className="md:hidden flex border-t border-slate-100 dark:border-neutral-900 bg-slate-50 dark:bg-neutral-950 px-4 py-1 text-xs font-bold justify-center gap-2">
+          <button
+            onClick={() => switchTab('invoices')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all ${
+              activeTab === 'invoices'
+                ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-500'
+            }`}
+          >
+            <ReceiptText size={14} />
+            <span>Retail Invoices</span>
+          </button>
+          <button
+            onClick={() => switchTab('shortcut')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md transition-all ${
+              activeTab === 'shortcut'
+                ? 'bg-white dark:bg-neutral-900 text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-slate-500'
+            }`}
+          >
+            <TableProperties size={14} />
+            <span>Shortcut Sales</span>
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col gap-8">
-          {/* Top: Controls */}
-          <div className="w-full">
-            <InvoiceForm onGenerate={handleGenerate} isGenerating={isGenerating} />
-          </div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {activeTab === 'invoices' ? (
+          <div className="flex flex-col gap-8">
+            <div className="w-full">
+              <InvoiceForm onGenerate={handleGenerate} isGenerating={isGenerating} />
+            </div>
 
-          {/* Bottom: Results */}
-          <div className="w-full">
-            <InvoiceSummary invoices={invoices} />
-            <InvoiceList invoices={invoices} seller={seller} />
+            <div className="w-full">
+              <InvoiceSummary invoices={invoices} />
+              <InvoiceList invoices={invoices} seller={seller} />
+            </div>
           </div>
-        </div>
+        ) : (
+          <ShortcutPage config={config} />
+        )}
       </main>
 
       <SettingsModal 
@@ -272,3 +348,4 @@ export default function App() {
     </div>
   );
 }
+

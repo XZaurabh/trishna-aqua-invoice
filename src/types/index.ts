@@ -65,3 +65,27 @@ export interface GenerationSummary {
   totalCgst: number;
   totalSgst: number;
 }
+
+export interface MonthlyRow {
+  id: string;
+  date: Date;
+  customerName: string;
+  customerAddress: string;
+  memoNo: string;
+  quantity: number;
+  amount: number;
+  cgstAmount: number;
+  sgstAmount: number;
+  description: string;
+}
+
+export type MonthlyJarTier = 'low' | 'mid' | 'high' | 'custom';
+
+export interface MonthlyGenerationParams {
+  startDate: Date;
+  endDate: Date;
+  startMemoNo: number;
+  tier: MonthlyJarTier;
+  customJars?: number;
+}
+
